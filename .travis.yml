@@ -8,3 +8,13 @@ before_install:
 
 script:
   - "yarn build"
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  local-dir: dist
+  verbose: true
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep-history: true
+  on:
+    branch: master
