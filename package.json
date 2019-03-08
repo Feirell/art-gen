@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "start": "parcel index.html",
-    "build": "parcel build"
+    "start": "parcel serve index.html",
+    "build": "parcel build index.html"
   },
   "dependencies": {
     "color": "^3.1.0",
