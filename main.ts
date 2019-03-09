@@ -1,11 +1,19 @@
 import FPS from './fps';
 import { TriangleDrawer } from './triangle-drawer';
+import { EventElementWrapper, createEventElementMapper } from './util';
+import { TraversingColorDefiner } from './traversing-color-definer';
+
+if (module.hot)
+    module.hot.dispose(() => location.reload());
+
+const tcd = new TraversingColorDefiner(0.05, 200);
 
 let td: TriangleDrawer;
 let output: HTMLElement;
+let canvas: HTMLCanvasElement;
 
-const offSpeed = 0.05;
-const offStart = Date.now();
+let mouseX, mouseY;
+
 const raf = window.requestAnimationFrame.bind(window);
 const fps = new FPS();
 
@@ -20,13 +28,17 @@ let out: {
 
 const cycle = () => {
     // output.innerText = "";
-    const diff = Date.now() - offStart;
-    const offx = diff * offSpeed;
-    const { overzero, underzero } = td.drawTryangles(offx, 0);
+    tcd.cycleStart();
+    const f = tcd.fillStyleDefiner.bind(tcd);
+    const s = tcd.strokeStyleDefiner.bind(tcd);
+
+    td.drawTryangles(f, s);
+    tcd.cycleEnd();
+    const { overZero, underZero } = tcd;
     td.width = width;
 
-    out.triangleCount.innerText = '' + (overzero + underzero);
-    out.positiveNoise.innerText = '~ ' + Math.round((overzero / (overzero + underzero)) * 100) + '%';
+    out.triangleCount.innerText = '' + (overZero + underZero);
+    out.positiveNoise.innerText = '~ ' + Math.round((overZero / (overZero + underZero)) * 100) + '%';
     out.framesPerSecond.innerText = '' + fps.toString(0) + ' hz';
     out.triangleWidth.innerText = '' + width + ' px';
 
@@ -50,9 +62,21 @@ addEventListener('keydown', ev => {
     }
 })
 
-const doSmth = () => {
+let bounding;
+let canvasMapper: undefined | EventElementWrapper = undefined;
+
+addEventListener('mousemove', ev => {
+    if (canvasMapper === undefined)
+        canvasMapper = createEventElementMapper(canvas);
+
+    bounding = canvasMapper(ev);
+
+    // console.log(bounding);
+})
+
+const intialize = () => {
     // output = document.getElementsByTagName('output')[0];
-    const canvas = document.getElementsByTagName('canvas')[0];
+    canvas = document.getElementsByTagName('canvas')[0];
     const context = canvas.getContext('2d');
 
     out = {
@@ -61,6 +85,8 @@ const doSmth = () => {
         framesPerSecond: <HTMLElement>document.getElementById("out-frames-per-second"),
         triangleWidth: <HTMLElement>document.getElementById("out-triangle-width")
     }
+
+
 
     if (!context)
         throw new Error('could not create the 2d context');
@@ -72,8 +98,4 @@ const doSmth = () => {
     raf(cycle);
 }
 
-if (document.readyState == 'loading')
-    document.addEventListener('DOMContentLoaded', doSmth);
-else
-    window.location.reload();
-
+document.addEventListener('DOMContentLoaded', intialize);

@@ -9,6 +9,7 @@ const osn = new OpenSimplexNoise();
 // const sqrtThreeHalf = Math.sqrt(3) / 2;
 const rgbToHexString = (r: number, g: number, b: number) => '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
 
+export type ColorAtPosition = (x: number, y: number) => string | null;
 export class TriangleDrawer {
     context: CanvasRenderingContext2D;
     triangle!: Triangle;
@@ -36,35 +37,20 @@ export class TriangleDrawer {
         const m = up ? 1 : -1;
         const c = this.context;
         c.beginPath();
-        const off = 0;
-        c.moveTo(cx + m * halfWidth - off, cy + m * halfHeight - off);
-        c.lineTo(cx - m * halfWidth + off, cy + m * halfHeight + off);
-        c.lineTo(cx, cy - m * halfHeight + off);
+
+        c.moveTo(cx + m * halfWidth, cy + m * halfHeight);
+        c.lineTo(cx - m * halfWidth, cy + m * halfHeight);
+        c.lineTo(cx, cy - m * halfHeight);
         c.closePath();
     }
 
-    drawTryangles(offx: number, offy: number) {
+    drawTryangles(fillColorFnc: ColorAtPosition, strokeColorFnc: ColorAtPosition) {
         const { halfWidth, halfHeight, height } = this.triangle;
         const trianglesCountHeight = Math.ceil(this.canvasHeight / height);
         const trianglesCountWidth = Math.ceil(1 + this.canvasWidth / halfWidth);
 
         const c = this.context;
-        // const m = (<any>c).currentTransform;
-        // console.log(m);
-        // c.setTransform(0, 0, 0, 0, 0, 0);
         c.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-        // c.getTransform
-
-        // c.strokeStyle = '#77FF00';
-        // const scale = 1 / 50;
-        const scale = 1 / this.scale;
-
-        let underzero = 0;
-        let overzero = 0;
-
-        // for (let n = 0; n < 10; n++) {
-        // c.translate(15, 6);
-        // c.strokeStyle = '#' + (16 + n * 20).toString(16) + 'FF00';
 
         for (let yi = 0; yi < trianglesCountHeight; yi++)
             for (let xi = 0; xi < trianglesCountWidth; xi++) {
@@ -72,26 +58,20 @@ export class TriangleDrawer {
                 const centerY = halfHeight + height * yi;
                 const upside = (yi % 2 + xi) % 2 == 0;
                 this.setTryanglePath(centerX, centerY, upside);
-                const noise = osn.noise2D((offx + centerX) * scale, (offy + centerY) * scale);
-                if (noise < 0)
-                    underzero++;
-                else
-                    overzero++;
 
-                c.fillStyle = /*noise < 0 ?
-                        Color.hsl(190, 50, 50).hex() :*/
-                    // Color.hsl((noise < 0 ? 200 : 50) + 40 * noise, 50, 50).hex();
-                    Color.hsl(200 + 40 * noise, 50, 50).hex();
-                // Color.hsl(200 + 120 * (xi + yi) / (trianglesCountHeight + trianglesCountWidth), 50, 50).hex();
+                const fillColor = fillColorFnc(centerX, centerY);
 
-                // c.fillStyle = '#000000';
+                if (fillColor) {
+                    c.fillStyle = fillColor;
+                    c.fill();
+                }
 
-                // c.fillStyle = rgbToHexString(Math.random() * 255, Math.random() * 255, Math.random() * 255);
-                c.fill();
-                // c.stroke();
+                const strokeColor = strokeColorFnc(centerX, centerY);
+
+                if (strokeColor) {
+                    c.strokeStyle = strokeColor;
+                    c.stroke();
+                }
             }
-        // }
-
-        return { underzero, overzero };
     }
 }
