@@ -12,13 +12,11 @@ const rgbToHexString = (r: number, g: number, b: number) => '#' + [r, g, b].map(
 export class TriangleDrawer {
     context: CanvasRenderingContext2D;
     triangle!: Triangle;
-    output: HTMLElement;
     scale: number;
 
-    constructor(context: CanvasRenderingContext2D, width: number, scale: number, output: HTMLElement) {
+    constructor(context: CanvasRenderingContext2D, width: number, scale: number, ) {
         this.context = context;
         this.width = width;
-        this.output = output;
         this.scale = scale;
     }
 
@@ -94,6 +92,6 @@ export class TriangleDrawer {
             }
         // }
 
-        this.output.innerText = '    ' + (underzero + overzero) + '\n<0: ' + underzero + '\n>0: ' + overzero;
+        return { underzero, overzero };
     }
 }

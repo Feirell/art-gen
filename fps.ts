@@ -21,7 +21,7 @@ export default class FPS {
         });
     }
 
-    getFps(precision = 1) {
+    get fps() {
         let length = 0;
         let sum = 0;
         for (let ts of this.stack) {
@@ -32,12 +32,16 @@ export default class FPS {
         if (length == 0)
             return NaN;
 
-        const fps = 1000 / (sum / length);
-
-        return Math.round(fps * 10) / 10;
+        return 1000 / (sum / length);
     }
 
-    get fps() {
-        return this.getFps();
+    toString(precision = 1) {
+        precision = Math.round(precision);
+        if (precision < 1)
+            return Math.round(this.fps);
+        else {
+            const shift = Math.pow(10, precision);
+            return Math.round(this.fps * shift) / shift;
+        }
     }
 }
