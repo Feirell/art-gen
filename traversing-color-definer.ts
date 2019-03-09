@@ -3,19 +3,20 @@ import Color from 'color';
 
 
 import { ColorDefiner } from "./color-definer";
+import { TableRenderer } from './table-renderer';
 
 export class TraversingColorDefiner implements ColorDefiner {
 
     private offStart = Date.now();
     private osn = new OpenSimplexNoise();
 
-    public overZero = 0;
-    public underZero = 0;
+    private overZero = 0;
+    private underZero = 0;
 
     private offX = NaN;
     private offY = NaN;
 
-    constructor(private offSpeed: number, public scale: number) { }
+    constructor(private outputTable: TableRenderer, private offSpeed: number, public scale: number) { }
 
     cycleStart(): void {
         this.overZero = this.underZero = 0;
@@ -26,7 +27,9 @@ export class TraversingColorDefiner implements ColorDefiner {
     }
 
     cycleEnd(): void {
-        // throw new Error("Method not implemented.");
+        this.outputTable.data = [
+            ['Over Zero:', '~ ' + Math.round((this.overZero / (this.overZero + this.underZero)) * 100) + '%']
+        ]
     }
 
     fillStyleDefiner(x: number, y: number) {

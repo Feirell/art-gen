@@ -70,5 +70,6 @@ export class TriangleDrawer {
                 }
             }
         cd.cycleEnd();
+        return trianglesCountHeight * trianglesCountWidth;
     }
 }

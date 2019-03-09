@@ -2,40 +2,36 @@ import FPS from './fps';
 import { TriangleDrawer } from './triangle-drawer';
 import { EventElementWrapper, createEventElementMapper } from './util';
 import { TraversingColorDefiner } from './traversing-color-definer';
+import { TableRenderer } from './table-renderer';
 
-if (module.hot)
-    module.hot.dispose(() => location.reload());
+if ((<any>module).hot)
+    (<any>module).hot.dispose(() => location.reload());
 
-const tcd = new TraversingColorDefiner(0.05, 200);
+const metaTable = new TableRenderer();
+const drawerTable = new TableRenderer();
+const tcd = new TraversingColorDefiner(drawerTable, 0.05, 200);
 
 let td: TriangleDrawer;
-let output: HTMLElement;
 let canvas: HTMLCanvasElement;
-
-let mouseX, mouseY;
 
 const raf = window.requestAnimationFrame.bind(window);
 const fps = new FPS();
 
 let width = 75;
 
-let out: {
-    triangleCount: HTMLElement,
-    positiveNoise: HTMLElement,
-    framesPerSecond: HTMLElement,
-    triangleWidth: HTMLElement
-};
-
 const cycle = () => {
     // output.innerText = "";
-    td.drawTriangles(tcd);
-    const { overZero, underZero } = tcd;
+    const triangleCount = td.drawTriangles(tcd);
     td.width = width;
 
-    out.triangleCount.innerText = '' + (overZero + underZero);
-    out.positiveNoise.innerText = '~ ' + Math.round((overZero / (overZero + underZero)) * 100) + '%';
-    out.framesPerSecond.innerText = '' + fps.toString(0) + ' hz';
-    out.triangleWidth.innerText = '' + width + ' px';
+    metaTable.data = [
+        ['Triangle Count:', '' + triangleCount],
+        ['Fames per Second:', '' + fps.toString(0) + ' hz'],
+        ['Triangle Width:', '' + width + ' px']
+    ];
+
+    metaTable.render();
+    drawerTable.render();
 
     raf(cycle);
 }
@@ -70,16 +66,21 @@ addEventListener('mousemove', ev => {
 })
 
 const intialize = () => {
-    // output = document.getElementsByTagName('output')[0];
+    // output = ;
     canvas = document.getElementsByTagName('canvas')[0];
     const context = canvas.getContext('2d');
 
-    out = {
-        triangleCount: <HTMLElement>document.getElementById("out-triangle-count"),
-        positiveNoise: <HTMLElement>document.getElementById("out-positive-noise"),
-        framesPerSecond: <HTMLElement>document.getElementById("out-frames-per-second"),
-        triangleWidth: <HTMLElement>document.getElementById("out-triangle-width")
-    }
+    const output = document.getElementsByTagName('output')[0];
+    output.innerHTML = '';
+    output.appendChild(metaTable.table);
+    output.appendChild(drawerTable.table);
+
+    // out = {
+    //     triangleCount: <HTMLElement>document.getElementById("out-triangle-count"),
+    //     positiveNoise: <HTMLElement>document.getElementById("out-positive-noise"),
+    //     framesPerSecond: <HTMLElement>document.getElementById("out-frames-per-second"),
+    //     triangleWidth: <HTMLElement>document.getElementById("out-triangle-width")
+    // }
 
 
 
