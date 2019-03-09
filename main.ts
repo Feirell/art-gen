@@ -28,12 +28,7 @@ let out: {
 
 const cycle = () => {
     // output.innerText = "";
-    tcd.cycleStart();
-    const f = tcd.fillStyleDefiner.bind(tcd);
-    const s = tcd.strokeStyleDefiner.bind(tcd);
-
-    td.drawTryangles(f, s);
-    tcd.cycleEnd();
+    td.drawTriangles(tcd);
     const { overZero, underZero } = tcd;
     td.width = width;
 

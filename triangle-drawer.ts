@@ -1,15 +1,9 @@
-import OpenSimplexNoise from 'open-simplex-noise';
-import Color from 'color';
 import Triangle from './triangle';
-
-const osn = new OpenSimplexNoise();
-
+import { ColorAtPosition, ColorDefiner } from './color-definer';
 // import Vector from './vector';
 
 // const sqrtThreeHalf = Math.sqrt(3) / 2;
-const rgbToHexString = (r: number, g: number, b: number) => '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
 
-export type ColorAtPosition = (x: number, y: number) => string | null;
 export class TriangleDrawer {
     context: CanvasRenderingContext2D;
     triangle!: Triangle;
@@ -44,7 +38,7 @@ export class TriangleDrawer {
         c.closePath();
     }
 
-    drawTryangles(fillColorFnc: ColorAtPosition, strokeColorFnc: ColorAtPosition) {
+    drawTriangles(cd: ColorDefiner) {
         const { halfWidth, halfHeight, height } = this.triangle;
         const trianglesCountHeight = Math.ceil(this.canvasHeight / height);
         const trianglesCountWidth = Math.ceil(1 + this.canvasWidth / halfWidth);
@@ -52,26 +46,29 @@ export class TriangleDrawer {
         const c = this.context;
         c.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
+        cd.cycleStart();
         for (let yi = 0; yi < trianglesCountHeight; yi++)
             for (let xi = 0; xi < trianglesCountWidth; xi++) {
                 const centerX = halfWidth * xi;
                 const centerY = halfHeight + height * yi;
+
                 const upside = (yi % 2 + xi) % 2 == 0;
                 this.setTryanglePath(centerX, centerY, upside);
 
-                const fillColor = fillColorFnc(centerX, centerY);
+                const fillColor = cd.fillStyleDefiner(centerX, centerY);
 
                 if (fillColor) {
                     c.fillStyle = fillColor;
                     c.fill();
                 }
 
-                const strokeColor = strokeColorFnc(centerX, centerY);
+                const strokeColor = cd.strokeStyleDefiner(centerX, centerY);
 
                 if (strokeColor) {
                     c.strokeStyle = strokeColor;
                     c.stroke();
                 }
             }
+        cd.cycleEnd();
     }
 }
