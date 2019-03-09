@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "parcel serve index.html",
-    "build-for-gh": "parcel build index.html --public-url=art-gen",
+    "build-for-gh": "parcel build index.html --public-url=./",
     "build": "parcel build index.html"
   },
   "dependencies": {
