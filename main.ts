@@ -3,13 +3,24 @@ import { TriangleDrawer } from './triangle-drawer';
 import { EventElementWrapper, createEventElementMapper } from './util';
 import { TraversingColorDefiner } from './traversing-color-definer';
 import { TableRenderer } from './table-renderer';
+import { PointColorDefiner } from './point-color-definer';
 
 if ((<any>module).hot)
     (<any>module).hot.dispose(() => location.reload());
 
 const metaTable = new TableRenderer();
 const drawerTable = new TableRenderer();
-const tcd = new TraversingColorDefiner(drawerTable, 0.05, 200);
+
+let currentActive = 0;
+const colorDefiner: any = [
+    {
+        description: 'Traversing + Noise',
+        cd: new TraversingColorDefiner(drawerTable, 0.05, 200)
+    }, {
+        description: 'Cursor',
+        cd: new PointColorDefiner(drawerTable, 4)
+    }
+];
 
 let td: TriangleDrawer;
 let canvas: HTMLCanvasElement;
@@ -19,9 +30,26 @@ const fps = new FPS();
 
 let width = 75;
 
+const prepColorDefiner = () => {
+    const { cd } = colorDefiner[currentActive];
+
+    if (currentActive == 1) {
+        const point = bounding || {
+            onElementX: (+canvas.getAttribute('width')) / 2,
+            onElementY: (+canvas.getAttribute('height')) / 2
+        };
+
+        cd.point.x = point.onElementX;
+        cd.point.y = point.onElementY;
+    }
+
+    return cd;
+}
+
 const cycle = () => {
-    // output.innerText = "";
-    const triangleCount = td.drawTriangles(tcd);
+
+    const cd = prepColorDefiner();
+    const triangleCount = td.drawTriangles(cd);
     td.width = width;
 
     metaTable.data = [
@@ -53,21 +81,51 @@ addEventListener('keydown', ev => {
     }
 })
 
-let bounding;
-let canvasMapper: undefined | EventElementWrapper = undefined;
+let bounding: any = null;
+let canvasMapper: EventElementWrapper;
 
 addEventListener('mousemove', ev => {
-    if (canvasMapper === undefined)
-        canvasMapper = createEventElementMapper(canvas);
-
     bounding = canvasMapper(ev);
-
-    // console.log(bounding);
 })
 
+const displayOptions = (wrapper: HTMLElement) => {
+
+
+    let options = '';
+
+    for (let i in colorDefiner) {
+        options += '<div data-opt-id="' + i + '"><div>' + ((+i) + 1) + '</div><div>' + colorDefiner[i].description + '</div></div>';
+    }
+
+    wrapper.innerHTML = options;
+
+    const getOptionFromElem = (elem: any) => +elem.dataset.optId;
+
+    const setOptionAsActive = (option: HTMLDivElement | number) => {
+        currentActive = NaN;
+        for (let elem of wrapper.children) {
+            const optoinsId = getOptionFromElem(elem);
+            if (elem == option || optoinsId == option) {
+                elem.className = 'active';
+                currentActive = optoinsId;
+            } else {
+                elem.className = '';
+            }
+        }
+    }
+
+    wrapper.addEventListener('click', ev => {
+        const elem = <HTMLDivElement>(<any>ev).originalTarget.parentElement;
+
+        setOptionAsActive(elem);
+    });
+    setOptionAsActive(currentActive);
+}
+
 const intialize = () => {
-    // output = ;
     canvas = document.getElementsByTagName('canvas')[0];
+    const optionswrapper = document.getElementsByTagName('div')[1];
+    canvasMapper = createEventElementMapper(canvas)
     const context = canvas.getContext('2d');
 
     const output = document.getElementsByTagName('output')[0];
@@ -75,14 +133,7 @@ const intialize = () => {
     output.appendChild(metaTable.table);
     output.appendChild(drawerTable.table);
 
-    // out = {
-    //     triangleCount: <HTMLElement>document.getElementById("out-triangle-count"),
-    //     positiveNoise: <HTMLElement>document.getElementById("out-positive-noise"),
-    //     framesPerSecond: <HTMLElement>document.getElementById("out-frames-per-second"),
-    //     triangleWidth: <HTMLElement>document.getElementById("out-triangle-width")
-    // }
-
-
+    displayOptions(optionswrapper);
 
     if (!context)
         throw new Error('could not create the 2d context');
