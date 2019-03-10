@@ -115,9 +115,13 @@ const displayOptions = (wrapper: HTMLElement) => {
     }
 
     wrapper.addEventListener('click', ev => {
-        const elem = <HTMLDivElement>(<any>ev).originalTarget.parentElement;
+        const original = <HTMLDivElement>(<any>ev).originalTarget;
+        const parent = <HTMLDivElement>original.parentElement;
 
-        setOptionAsActive(elem);
+        if (original.dataset.optId)
+            setOptionAsActive(original);
+        else if (parent.dataset.optId)
+            setOptionAsActive(parent);
     });
     setOptionAsActive(currentActive);
 }
